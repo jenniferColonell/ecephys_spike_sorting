@@ -42,7 +42,7 @@ def call_TPrime(args):
     #   all streams for which sync edges have been extracted
 
     toStream_params = args['tPrime_helper_params']['toStream_sync_params']
-    ni_sync_params = args['tPrime_helper_params']['ni_sync_params']
+    ni_sync_params = args['tPrime_helper_params']['niStream_sync_params']
     catGTcmd = args['catGT_helper_params']['cmdStr']
 
     exe_path = os.path.join(args['tPrime_helper_params']['tPrime_path'], 'TPrime.exe')
