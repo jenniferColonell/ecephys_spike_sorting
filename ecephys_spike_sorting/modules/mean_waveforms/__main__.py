@@ -68,10 +68,11 @@ def calculate_mean_waveforms(args):
                     args['ephys_params']['bit_volts'], \
                     args['ephys_params']['sample_rate'], \
                     args['ephys_params']['vertical_site_spacing'], \
-                    args['mean_waveform_params'])
-                
-        metrics.to_csv(args['waveform_metrics']['waveform_metrics_file'])      
-        
+                    args['mean_waveform_params'], \
+                    args['directories']['kilosort_output_directory'])
+
+        metrics.to_csv(args['waveform_metrics']['waveform_metrics_file'])
+
     else:
         
         print('Calculating mean waveforms using python.')

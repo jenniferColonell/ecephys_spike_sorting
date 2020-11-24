@@ -13,16 +13,16 @@ from ...common.utils import printProgressBar
 
 def metrics_from_file(mean_waveform_fullpath,
                       snr_fullpath,
-                      spike_times, 
-                      spike_clusters, 
-                      templates, 
-                      channel_map, 
-                      bit_volts, 
-                      sample_rate, 
-                      site_spacing, 
-                      params):
-                     
-    
+                      spike_times,
+                      spike_clusters,
+                      templates,
+                      channel_map,
+                      bit_volts,
+                      sample_rate,
+                      site_spacing,
+                      params,output_dir):
+
+
     """
     Load C_waves output and call waveform_metrics for each cluster
     Does not support epochs, since waveforms are already averaged
@@ -82,9 +82,13 @@ def metrics_from_file(mean_waveform_fullpath,
     snr_array = np.load(snr_fullpath)
 
 
-    peak_channels = np.squeeze(channel_map[np.argmax(np.max(templates,1) - np.min(templates,1),1)])
-    
-    
+    # read in inverse of whitening matrix
+    w_inv = np.load((os.path.join(output_dir, 'whitening_mat_inv.npy')))
+    nTemplate = templates.shape[0]
+
+    # initialize peak_channels array
+    peak_channels = np.zeros([nTemplate, ], 'uint32')
+
     for cluster_idx, cluster_id in enumerate(cluster_ids):
 
         printProgressBar(cluster_idx+1, total_units)
