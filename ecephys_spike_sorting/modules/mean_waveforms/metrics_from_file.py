@@ -81,7 +81,10 @@ def metrics_from_file(mean_waveform_fullpath,
     mean_waveforms = np.load(mean_waveform_fullpath)
     snr_array = np.load(snr_fullpath)
 
-
+    templates = np.load(os.path.join(output_dir, 'templates.npy'))
+    channel_map = np.load(os.path.join(output_dir, 'channel_map.npy'))
+    channel_map = np.squeeze(channel_map)
+    
     # read in inverse of whitening matrix
     w_inv = np.load((os.path.join(output_dir, 'whitening_mat_inv.npy')))
     nTemplate = templates.shape[0]
