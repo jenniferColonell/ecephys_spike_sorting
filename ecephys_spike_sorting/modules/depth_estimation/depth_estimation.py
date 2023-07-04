@@ -228,7 +228,7 @@ def plot_results(chunk,
     plt.plot(y_sorted, values[chunk_order]) 
     plt.plot([chan_y[0],chan_y[nchannels-1]],[power_thresh,power_thresh],'--k')
     
-    surface_index = np.min(np.where(y_sorted > surface_y))
+    surface_index = np.min(np.where(y_sorted >= surface_y))
     plt.plot([surface_index, surface_index],[-2, 2],'--r')
     
     plt.subplot(4,1,4)
