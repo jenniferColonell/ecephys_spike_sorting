@@ -22,14 +22,14 @@ def createInputJson(output_file,
                     continuous_file = None,
                     spikeGLX_data=True,
                     input_meta_path=None,
-                    extracted_data_directory=None,
-                    kilosort_output_directory=None,
+                    extracted_data_directory=r'/home/zhangxx/data/extracted_data',
+                    kilosort_output_directory=r'/home/zhangxx/data/ks_output',
                     ks_make_copy=False,
-                    probe_type='',
+                    probe_type='NP1',
                     catGT_run_name='test',
                     gate_string='0',
                     trigger_string='0,0',
-                    probe_string='0',
+                    probe_string='0,1',
                     depth_est_fig = 0,
                     catGT_stream_string = '-ap',
                     catGT_car_mode = 'gbldmx',
@@ -72,11 +72,11 @@ def createInputJson(output_file,
                     ):
 
     # hard coded paths to code on your computer and system
-    ecephys_directory = r'C:\Users\colonellj\Documents\021124_test_install\ecephys_spike_sorting\ecephys_spike_sorting'
+    ecephys_directory = r'/home/zhangxx/code/QC/ecephys_spike_sorting/ecephys_spike_sorting'
     
     # location of kilosor respository and kilosort version
 
-    kilosort_repository = r'C:\Users\colonellj\Documents\KS3'
+    kilosort_repository = r'/home/zhangxx/code/Kilosort'
 
     KS2ver = '3.0'      # must equal '3.0', '2.5' or '2.0', and match the kiilosort_repository
     
@@ -84,14 +84,16 @@ def createInputJson(output_file,
     if KS2ver == '3.0':
         include_pcs = False  # set to false for KS2ver = '3.0'
     
-    npy_matlab_repository = r'C:\Users\colonellj\Documents\npy-matlab-master'
-    catGTPath = r'C:\Users\colonellj\Documents\CatGT-win'
-    tPrime_path=r'C:\Users\colonellj\Documents\TPrime-win'
-    cWaves_path=r'C:\Users\colonellj\Documents\C_Waves-win'
+    npy_matlab_repository = r'/home/zhangxx/code/Lib/npy-matlab'
+    catGTPath = r'/home/zhangxx/code/QC/CatGT-linux'
+    tPrime_path=r'/home/zhangxx/code/QC/TPrime-linux'
+    cWaves_path=r'/home/zhangxx/code/QC/C_Waves-linux'
     
      
     # for config files and kilosort working space
-    kilosort_output_tmp = r'C:\kilosort_datatemp' 
+    kilosort_output_tmp = os.path.join(r'/home/zhangxx/data/ks_temp',catGT_run_name,(gate_string+trigger_string+probe_string).replace(':','_').replace(',','_'))
+    # breakpoint()
+    os.makedirs(kilosort_output_tmp,exist_ok=True)
     
     
     # derived directory names
@@ -291,7 +293,8 @@ def createInputJson(output_file,
                 "whiteningRange" : ks_whiteningRange,
                 "nNeighbors" : ks_nNeighbors,
                 "CAR" : ks_CAR,
-                "nblocks" : ks_nblocks
+                "nblocks" : ks_nblocks,
+                "NT": '256*1024 + ops.ntbuff'
             }
         },
             

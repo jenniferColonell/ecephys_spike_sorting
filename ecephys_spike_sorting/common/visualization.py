@@ -172,7 +172,7 @@ def plotDriftmap(ks_directory, sample_rate = 30000, time_range = [0, np.inf], ex
                 c = spike_amplitudes[spikes_to_use[selection]], 
                 s = np.ones(selection.shape), 
                 vmin=0,
-                vmax=3000, 
+                vmax=500, 
                 alpha=0.25,
                 cmap='Greys')
 
