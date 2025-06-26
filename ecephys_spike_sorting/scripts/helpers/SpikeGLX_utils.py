@@ -368,6 +368,7 @@ def Chans2PrintStr(chan_bool):
     return out_str
     
 def CreateShankSaveString(metaFullPath):
+    # superseded by CreateSepShanksString with CatGT version 4.4
     # first create Path object from string
     metaPath = Path(metaFullPath)
     metaStem = metaPath.stem
@@ -436,21 +437,17 @@ def CreateSepShanksString(metaFullPath):
             prb_ind = int(imStr[4:len(imStr)])
     else:
        print('Incorrect metadata filenmae.') 
-       nShank = 0
+       sh = []
        sepShanks_str = ''
        out_ind_list = []
    
-    meta = SGLXMeta.readMeta(metaPath)
-    geomMap = meta['snsGeomMap'].split(sep=')')
-    currList = geomMap[0].split(',')
-    nShank = int(currList[1]);
     xCoord, yCoord, shankInd, connected = SGLXMeta.MetaToCoords(metaPath,-1)    
     sh, sh_counts = np.unique(shankInd, return_counts=True)
      
     sepShanks_str = '-sepShanks=' + repr(prb_ind)
     out_ind_list = []
     
-    for i in range(nShank):  
+    for i in range((np.max(sh)+1).astype(int)):  
         out_ind_str = str(int(1000 + 10*prb_ind + i))
         sepShanks_str = sepShanks_str + ','  + out_ind_str
         if np.isin(i,sh):
