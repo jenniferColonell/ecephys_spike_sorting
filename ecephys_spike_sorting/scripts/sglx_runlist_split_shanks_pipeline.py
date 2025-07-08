@@ -426,7 +426,7 @@ for spec in run_specs:
                                        extracted_data_directory = data_directory[i],
                                        event_ex_param_str = event_ex_param_str,
                                        c_Waves_snr_um = c_Waves_snr_um,
-                                       c_Waves_calc_half = True,
+                                       c_Waves_calc_half = False,
                                        qm_isi_thresh = refPerMS/1000,
                                        ks4_duplicate_spike_ms = ks4_duplicate_spike_ms,
                                        ks4_min_template_size_um = ks4_min_template_size_um

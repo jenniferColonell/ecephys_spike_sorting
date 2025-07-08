@@ -48,17 +48,17 @@ def calculate_mean_waveforms(args):
         # on first call to mean_waveforms, output has no version indicator;
         # for later calls, will rename to _version.npy
         # need to rename the originals, because the output names from C_Waves are hard coded
+        # C_waves_output names:
+        cw_out_names = ['mean_waveforms', 'median_peak_waveforms','cluster_snr']
+        num_out = len(cw_out_names)
 
         if clu_version == 1:           
             # if mean_waveforms files exists, rename
-            old_mwf = os.path.join(dest,'mean_waveforms.npy')
-            if os.path.exists(old_mwf):
-                new_mwf = os.path.join(dest,'mean_waveforms_0.npy')
-                os.rename(old_mwf, new_mwf)
-            old_snr = os.path.join(dest,'cluster_snr.npy')
-            if os.path.exists(old_snr):
-                new_snr = os.path.join(dest,'cluster_snr_0.npy')
-                os.rename(old_snr, new_snr)
+            for i in range(num_out):
+                old_path =  os.path.join(dest,f'{cw_out_names[i]}.npy')
+                new_path = os.path.join(dest,f'{cw_out_names[i]}_0.npy')
+                if os.path.exists(old_path):
+                    os.rename(old_path, new_path)  
 
         
         # kilosort saves the spike_clusters files as uint32. 
@@ -103,11 +103,19 @@ def calculate_mean_waveforms(args):
             snr_fullpath = os.path.join(dest, 'cluster_snr.npy')
         else:
             # build names with version number and rename
-            # version 0 files are not renamed to maintain compatiblity with
+            # version 0 files are not renamed to maintain compatiblity with 
+            # software that consumes original names
+            # if mean_waveforms files exists, rename
+            for i in range(num_out):
+                old_path =  os.path.join(dest,f'{cw_out_names[i]}.npy')
+                new_path = os.path.join(dest,f'{cw_out_names[i]}_{clu_version}.npy')
+                if os.path.exists(old_path):
+                    os.rename(old_path, new_path)  
+                
+            # create paths for files that go to metrics_from file    
             mean_waveform_fullpath = os.path.join(dest, 'mean_waveforms_' + repr(clu_version) + '.npy')
             snr_fullpath = os.path.join(dest, 'cluster_snr_' + repr(clu_version) + '.npy')
-            os.rename(os.path.join(dest, 'mean_waveforms.npy'), mean_waveform_fullpath)
-            os.rename(os.path.join(dest, 'cluster_snr.npy'), snr_fullpath)
+
             
         
         # C_Waves writes out files of the waveforms and snr
@@ -166,6 +174,21 @@ def calculate_mean_waveforms(args):
             startsecs = float(np.min(spike_times))/args['ephys_params']['sample_rate']
             endsecs = float(np.max(spike_times))/args['ephys_params']['sample_rate']
             
+            prefix_list = ['first_half', 'second_half']
+            num_pre = len(prefix_list)
+            
+            # as with the output for the whole recording, save copies of the original output
+            if clu_version == 1:           
+                # if c_waves output files exist, rename
+                for j in range(num_pre):
+                    for i in range(num_out):
+                        old_path =  os.path.join(dest,f'{prefix_list[j]}_{cw_out_names[i]}.npy')
+                        new_path = os.path.join(dest,f'{prefix_list[j]}_{cw_out_names[i]}_0.npy')
+                        if os.path.exists(old_path):
+                            os.rename(old_path, new_path)
+
+                
+            
             cwaves_cmd = exe_path + ' -spikeglx_bin=' + spikeglx_bin + \
                                     ' -clus_table_npy=' + clus_table_npy + \
                                     ' -clus_time_npy=' + clus_time_npy + \
@@ -204,30 +227,28 @@ def calculate_mean_waveforms(args):
             # make the C_Waves call
             subprocess.Popen(cwaves_cmd,shell='False').wait()
             
-            # for first version, retain original names
-            if clu_version == 0:
-                fh_name = 'first_half_mean_waveforms.npy'
-                sh_name = 'second_half_mean_waveforms.npy'
-                fh_snr_name = 'first_half_cluster_snr.npy'
-                sh_snr_name = 'second_half_cluster_snr.npy'
- 
-            else:
-                # build names with version number and rename
-                # version 0 files are not renamed to maintain compatiblity with
-                fh_name = 'first_half_mean_waveforms_' + repr(clu_version) + '.npy'
-                sh_name = 'second_half_mean_waveforms_' + repr(clu_version) + '.npy'
-                fh_snr_name = 'first_half_clsuter_snr_' + repr(clu_version) + '.npy'
-                sh_snr_name = 'first_half_clsuter_snr_' + repr(clu_version) + '.npy'
-                os.rename(os.path.join(dest, 'first_half_mean_waveforms.npy'), os.path.join(dest,fh_name))
-                os.rename(os.path.join(dest, 'second_half_mean_waveforms.npy'), os.path.join(dest,sh_name))
-                os.rename(os.path.join(dest, 'first_half_cluster_snr.npy'), os.path.join(dest,fh_snr_name))
-                os.rename(os.path.join(dest, 'second_half_cluster_snr.npy'), os.path.join(dest,sh_snr_name))
-                
-            # create waveform files for UnitMatch from the mean_waveforms files
+            # create waveform files for UnitMatch from the current c_waves output for the two halves of the recording
             fh_counts = np.load(os.path.join(dest,'first_half_cluster_snr.npy'))[:,1]
             sh_counts = np.load(os.path.join(dest,'second_half_cluster_snr.npy'))[:,1]
-            create_UnitMatch_input(fh_counts, sh_counts, fh_name, sh_name, 
-                                 args['ephys_params']['num_sync_channels'], dest)
+            create_UnitMatch_input(fh_counts, sh_counts, 
+                                   'first_half_mean_waveforms.npy', 
+                                   'second_half_mean_waveforms.npy', 
+                                  args['ephys_params']['num_sync_channels'], dest)
+            
+
+
+ 
+            if clu_version > 0:                
+                # if c_waves output files exist, rename
+                for j in range(num_pre):
+                    for i in range(num_out):
+                        old_path =  os.path.join(dest,f'{prefix_list[j]}_{cw_out_names[i]}.npy')
+                        new_path = os.path.join(dest,f'{prefix_list[j]}_{cw_out_names[i]}_{clu_version}.npy')
+                        if os.path.exists(old_path):
+                            os.rename(old_path, new_path)
+                
+
+
             
             
         
