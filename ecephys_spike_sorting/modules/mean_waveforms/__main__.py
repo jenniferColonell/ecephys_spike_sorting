@@ -228,12 +228,12 @@ def calculate_mean_waveforms(args):
             subprocess.Popen(cwaves_cmd,shell='False').wait()
             
             # create waveform files for UnitMatch from the current c_waves output for the two halves of the recording
-            fh_counts = np.load(os.path.join(dest,'first_half_cluster_snr.npy'))[:,1]
-            sh_counts = np.load(os.path.join(dest,'second_half_cluster_snr.npy'))[:,1]
-            create_UnitMatch_input(fh_counts, sh_counts, 
+            clu_counts = np.load(os.path.join(dest,'clus_Table.npy'))[:,0]
+            
+            create_UnitMatch_input(clu_counts, 
                                    'first_half_mean_waveforms.npy', 
                                    'second_half_mean_waveforms.npy', 
-                                  args['ephys_params']['num_sync_channels'], dest)
+                                   args['ephys_params']['num_sync_channels'], dest)
             
 
 
@@ -305,10 +305,10 @@ def calculate_mean_waveforms(args):
     return {"execution_time" : execution_time} # output manifest
 
 
-def create_UnitMatch_input(fh_counts, sh_counts, fh_name, sh_name, num_sync, dest ):
+def create_UnitMatch_input(clu_counts, fh_name, sh_name, num_sync, dest ):
     # parse mean_waveform files from the first and second half of run for 
     # input to UnitMatch
-    # n_spike = array of counts for each spike label, 0 to maximum spike label
+    # clu_counts = array of counts for each spike label, 0 to maximum spike label
     # fh_name = name for mean_waveforms.npy file for first half
     # sh_name = name for mean_waveforms.npy file for the 2nd half
     # dest = phy directory of output, inclluding the means_waveforms files
@@ -326,7 +326,7 @@ def create_UnitMatch_input(fh_counts, sh_counts, fh_name, sh_name, num_sync, des
         
         
     for i in range(n_clu):
-        if (fh_counts[i] > 0) and (sh_counts[i] > 0):
+        if (clu_counts[i] > 0):
             new_wave = np.zeros((nt,n_save,2))
             new_wave[:,:,0] = np.transpose(fh_waves[i,0:n_save,:])
             new_wave[:,:,1] = np.transpose(sh_waves[i,0:n_save,:])
