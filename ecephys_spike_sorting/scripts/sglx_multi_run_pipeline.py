@@ -68,13 +68,16 @@ npx_directory = r'D:\SC048_in'
 
 # Each run_spec is a list of 4 strings:
 #   undecorated run name (no g/t specifier, the run field in CatGT)
-#   gate index or range of gate indicies, as a string (e.g. '0')
+#   gate index or range of gate indicies, as a string (e.g. '0', or '0,4')
 #   triggers to process/concatenate, as a string e.g. '0,400', '0,0 for a single file
 #           can replace first limit with 'start', last with 'end'; 'start,end'
 #           will concatenate all trials in the probe folder
-#   probes to process, as a string, e.g. '0', '0,3', '0:3'
+#   probes to process, as a string, e.g. '0', '0,3', '0:3' (to designate 0,1,2,3)
 #   brain regions, list of strings, one per probe, to set region specific params
 #           these strings must match a key in the param dictionaries above.
+#
+# NOTE: gate and trigger ranges are assumed to be continuous. If gates or triggers
+# need to be skipped, add -t_miss_ok to catGT_cmd_string.
 
 run_specs = [									
 						['SC048_122920_ex', '0', '0,0', '0', ['cortex','thalamus','thalamus'] ]
@@ -112,6 +115,8 @@ process_lf = False
 # these parameters will be used for all runs
 catGT_cmd_string = '-prb_fld -out_prb_fld -apfilter=butter,12,300,10000 -lffilter=butter,12,1,500 -gfix=0.4,0.10,0.02 '
 
+# Replace the ni extract string with parameters appropriate for your data
+# that has edges.
 ni_present = True
 ni_extract_string = '-xa=0,0,0,1,3,500 -xia=0,0,1,3,3,0 -xd=0,0,-1,1,50 -xid=0,0,-1,2,1.7 -xid=0,0,-1,3,5'
 
@@ -423,7 +428,7 @@ for spec in run_specs:
         # corrected by TPrime. This output is used to obtain analog values
         # from the NI stream at spike times.
         # Will cause an error if no ni stream exists.
-        # SpikeGLX_utils.CreateNITimeEvents(spec[0], spec[1], catGT_dest)
+        # SpikeGLX_utils.CreateNITimeEvents(spec[0], str(first_gate), catGT_dest)
     
         # create json files for calling TPrime
         session_id = spec[0] + '_TPrime'
