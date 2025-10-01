@@ -274,7 +274,8 @@ def parse_stream(stream_str):
         ip = 0 # never more than one ni stream
     elif stream_str.find('obx') > -1:
         js = 1
-        ip = int(stream_str.partition('obx')[2])
+        temp = stream_str.partition('obx')[2]
+        ip = int(temp.partition('_')[0])
     elif stream_str.find('imec') > -1:
         js = 2
         ip = int(stream_str.partition('imec')[2])

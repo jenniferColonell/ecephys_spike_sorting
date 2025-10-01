@@ -294,30 +294,43 @@ def ParseCatGTLog(logPath, run_name, gate_string, prb_list):
      
     return gfix_edits
 
-def CreateNITimeEvents(catGT_run_name, gate_string, catGT_dest):
-
+def CreateAuxTimeEvents(catGT_run_name, first_gate_string, catGT_dest, stream="ni"):
+    # Creates a set events are simply the times for the collected data 
+    # in any auxiliary (non-neural) stream, specified by stream.
+    # 
     # CatGT 1.9 and later always creates an output NI metadata file
-    # events are simply the times for the collected data
+    # 
  
-    output_folder = 'catgt_' + catGT_run_name + '_g' + gate_string
-    niMeta_filename = catGT_run_name + '_g' + gate_string + '_tcat.nidq.meta'
-    niMeta_path = Path(os.path.join(catGT_dest, output_folder, niMeta_filename))       
-    meta = SGLXMeta.readMeta(niMeta_path)
+    output_folder = 'catgt_' + catGT_run_name + '_g' + first_gate_string
+         
+    if stream.find('ni') > -1:
+        auxMeta_filename = f'{catGT_run_name}_g{first_gate_string}_tcat.nidq.meta'
+        auxMeta_path = Path(os.path.join(catGT_dest, output_folder, auxMeta_filename))       
+        meta = SGLXMeta.readMeta(auxMeta_path)
+        sample_rate = float(meta['niSampRate'])
+    elif stream.find('ob') > -1:
+        auxMeta_filename = f'{catGT_run_name}_g{first_gate_string}_tcat.{stream}.obx.meta'
+        auxMeta_path = Path(os.path.join(catGT_dest, output_folder, auxMeta_filename))       
+        meta = SGLXMeta.readMeta(auxMeta_path)
+        sample_rate = float(meta['obSampRate'])
+    else:
+        print('error in CreateAuxTimeEvents, unknow stream type')
+        return
     
-    sample_rate = float(meta['niSampRate'])
     num_channels = int(meta['nSavedChans'])
     nSamp = int(meta['fileSizeBytes'])/(num_channels * 2)
-    ni_times = np.arange(nSamp)/sample_rate
+    aux_times = np.arange(nSamp)/sample_rate
     
-    # save ni_times in output folder to be an event file
-    out_name = catGT_run_name + '_g' + gate_string + '_tcat.nidq.times.npy'
+    # save aux_times in output folder to be an event file
+
+    out_name = f'{catGT_run_name}_g{first_gate_string}_tcat.{stream}.times.npy'
     out_path = os.path.join(catGT_dest, output_folder, out_name)
-    np.save(out_path,ni_times)
+    np.save(out_path,aux_times)
     
     # check for presence of an all_fyi file, indicating run with catgt 3.0 or later in pipeline
     # supercat output will be named _fyi.txt 
-    fyi_all_path = Path(os.path.join(catGT_dest, output_folder, catGT_run_name + '_g' + gate_string + '_all_fyi.txt'))
-    fyi_single_path = Path(os.path.join(catGT_dest, output_folder, catGT_run_name + '_g' + gate_string + '_fyi.txt'))
+    fyi_all_path = Path(os.path.join(catGT_dest, output_folder, catGT_run_name + '_g' + first_gate_string + '_all_fyi.txt'))
+    fyi_single_path = Path(os.path.join(catGT_dest, output_folder, catGT_run_name + '_g' + first_gate_string + '_fyi.txt'))
     fyi_exists = False
     if Path(fyi_all_path).is_file():
         fyi_exists = True
@@ -329,7 +342,7 @@ def CreateNITimeEvents(catGT_run_name, gate_string, catGT_dest):
     if fyi_exists:
         # append a line for the newly created times file        
         file_fyi = open(fyi_path, "a")  # append mode
-        file_fyi.write('times_ni_N=' + out_path + '\n')
+        file_fyi.write(f'times_{stream}_N=' + out_path + '\n')
         file_fyi.close()
 
     return
