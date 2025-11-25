@@ -294,14 +294,14 @@ def ParseCatGTLog(logPath, run_name, gate_string, prb_list):
      
     return gfix_edits
 
-def CreateAuxTimeEvents(catGT_run_name, first_gate_string, catGT_dest, stream="ni"):
+def CreateAuxTimeEvents(catGT_run_name, first_gate_string, catGT_dest, catGT_out_tag, stream="ni"):
     # Creates a set events are simply the times for the collected data 
     # in any auxiliary (non-neural) stream, specified by stream.
     # 
     # CatGT 1.9 and later always creates an output NI metadata file
     # 
  
-    output_folder = 'catgt_' + catGT_run_name + '_g' + first_gate_string
+    output_folder = f'{catGT_out_tag}_{catGT_run_name}_g{first_gate_string}'
          
     if stream.find('ni') > -1:
         auxMeta_filename = f'{catGT_run_name}_g{first_gate_string}_tcat.nidq.meta'
@@ -468,3 +468,18 @@ def CreateSepShanksString(metaFullPath):
         
            
     return len(sh), sepShanks_str, out_ind_list
+
+
+def rec_length(metaFullPath):
+    # re-reads the metadata, which is inefficient.
+    # However, keeps the calling script simple (returns only the time)
+    
+    # first create Path object from string
+    metaPath = Path(metaFullPath)
+    meta = SGLXMeta.readMeta(metaPath)
+    
+    # use filesize, saved channels, and rate,
+    # just in case this is a user-edited file that didn't get  fileTimeSecs set correctly
+    nSamp = int(meta['fileSizeBytes'])/(2*int(meta['nSavedChans']))
+    recTimeSec = nSamp/float(meta['imSampRate'])
+    return recTimeSec

@@ -247,7 +247,7 @@ def load_kilosort_data(folder,
                        sample_rate = None, 
                        convert_to_seconds = True, 
                        use_master_clock = False, 
-                       include_pcs = False,
+                       include_pcs = True,
                        template_zero_padding= 21):
 
     """
@@ -264,7 +264,7 @@ def load_kilosort_data(folder,
     use_master_clock : bool (optional)
         Flags whether to load spike times that have been converted to the master clock timebase
     include_pcs : bool (optional)
-        Flags whether to load spike principal components (large file)
+        Flags whether to load spike principal components (now unused here)
     template_zero_padding : int (default = 21)
         Number of zeros added to the beginning of each template
 
@@ -296,6 +296,8 @@ def load_kilosort_data(folder,
         Channels used for PC calculation for each unit
     template_features (optional) : numpy.ndarray (N x number of features)
         projections onto template features for each spike
+    spike_positions (optional) : xy positions for each spike from KS4 only
+    
 
     """
 
@@ -313,19 +315,27 @@ def load_kilosort_data(folder,
     channel_pos = load(folder, 'channel_positions.npy')
 
     # pc and template features files were not created by some versions of KS.
-    # skip if absent, or caller has specfied include_pcs=False
-    if include_pcs and os.path.isfile(os.path.join(folder, 'pc_features.npy')):
+    # skip if absent
+    if os.path.isfile(os.path.join(folder, 'pc_features.npy')):
         pc_features = load(folder, 'pc_features.npy')
     else:
         pc_features = np.asarray([])
-    if include_pcs and os.path.isfile(os.path.join(folder, 'pc_feature_ind.npy')):
+    if  os.path.isfile(os.path.join(folder, 'pc_feature_ind.npy')):
         pc_feature_ind = load(folder, 'pc_feature_ind.npy')
     else:
         pc_feature_ind = np.asarray([])
-    if include_pcs and os.path.isfile(os.path.join(folder, 'template_features.npy')):
+    if os.path.isfile(os.path.join(folder, 'template_features.npy')):
         template_features = load(folder, 'template_features.npy') 
     else:
         template_features = np.asarray([])
+        
+    # position calculation added in KS4
+    # skip if absent
+    if os.path.isfile(os.path.join(folder, 'spike_positions.npy')):
+        print('loading spike_positions')
+        spike_positions = load(folder, 'spike_positions.npy') 
+    else:
+        spike_positions =  np.asarray([])
 
     # fix any nans in templates
     if np.sum(np.isnan(templates)):
@@ -370,13 +380,10 @@ def load_kilosort_data(folder,
         pad = np.zeros((diff,))
         cluster_amplitude = np.append(cluster_amplitude,pad)
         
-    if not include_pcs:
-        return spike_times, spike_clusters, spike_templates, amplitudes, unwhitened_temps, \
-                   channel_map, channel_pos, cluster_ids, cluster_quality, cluster_amplitude                 
-    else:
-        return spike_times, spike_clusters, spike_templates, amplitudes, unwhitened_temps, \
-           channel_map, channel_pos, cluster_ids, cluster_quality, cluster_amplitude, \
-           pc_features, pc_feature_ind, template_features
+
+    return spike_times, spike_clusters, spike_templates, amplitudes, unwhitened_temps, \
+       channel_map, channel_pos, cluster_ids, cluster_quality, cluster_amplitude, \
+       pc_features, pc_feature_ind, template_features, spike_positions
 
 def get_spike_depths(spike_clusters, unit_template_ids, first_pc_sq, pc_feature_ind, channel_pos):
 

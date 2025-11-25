@@ -9,7 +9,7 @@ from ...common.utils import getSortResults
 
 def remove_double_counted_spikes(spike_times, spike_clusters, spike_templates, 
                                  amplitudes, channel_map, channel_pos, templates, pc_features, 
-                                 pc_feature_ind, template_features, cluster_amplitude, 
+                                 pc_feature_ind, template_features, spike_positions, cluster_amplitude, 
                                  sample_rate, params, epochs = None):
 
     """ Remove putative double-counted spikes from Kilosort outputs
@@ -58,6 +58,7 @@ def remove_double_counted_spikes(spike_times, spike_clusters, spike_templates,
         Pre-computed PCs for blocks of channels around each spike
     template_features : numpy.ndarray (num_spikes x number of template features)
         projections of each spike onto the template features; if file is not found, skips
+    spike_positions : when present, the array of spike positiosn
     overlap_matrix : numpy.ndarray (num_clusters x num_clusters)
         Matrix indicating number of spikes removed for each pair of clusters
 
@@ -99,13 +100,15 @@ def remove_double_counted_spikes(spike_times, spike_clusters, spike_templates,
 
         spikes_to_remove = np.concatenate((spikes_to_remove, for_unit1[to_remove]))
 
-    spike_times, spike_clusters, spike_templates, amplitudes, pc_features, template_features = remove_spikes(spike_times, 
-                                                                        spike_clusters, 
-                                                                        spike_templates, 
-                                                                        amplitudes, 
-                                                                        pc_features, 
-                                                                        template_features, 
-                                                                        spikes_to_remove)
+    spike_times, spike_clusters, spike_templates, amplitudes, pc_features, \
+    template_features, spike_positions = remove_spikes(spike_times, 
+                                                       spike_clusters, 
+                                                       spike_templates, 
+                                                       amplitudes, 
+                                                       pc_features, 
+                                                       template_features, 
+                                                       spike_positions,
+                                                       spikes_to_remove)
                                                                         
 
     print('Removing between-unit overlapping spikes...')
@@ -140,13 +143,15 @@ def remove_double_counted_spikes(spike_times, spike_clusters, spike_templates,
                 spikes_to_remove = np.concatenate((spikes_to_remove, for_unit1[to_remove1], for_unit2[to_remove2]))
 
 
-    spike_times, spike_clusters, spike_templates, amplitudes, pc_features, template_features = remove_spikes(spike_times, 
-                                                                         spike_clusters,
-                                                                         spike_templates, 
-                                                                         amplitudes, 
-                                                                         pc_features, 
-                                                                         template_features, 
-                                                                         np.unique(spikes_to_remove))
+    spike_times, spike_clusters, spike_templates, amplitudes, pc_features, \
+    template_features, spike_positions = remove_spikes(spike_times, 
+                                                       spike_clusters,
+                                                       spike_templates, 
+                                                       amplitudes, 
+                                                       pc_features, 
+                                                       template_features, 
+                                                       spike_positions,
+                                                       np.unique(spikes_to_remove))
                                                                         
 #   build overlap summary 
     overlap_summary = np.zeros((num_clusters, 5), dtype=int )
@@ -160,7 +165,8 @@ def remove_double_counted_spikes(spike_times, spike_clusters, spike_templates,
     new_order = np.argsort(overlap_summary[:,0])
     overlap_summary = overlap_summary[new_order,:]
 
-    return spike_times, spike_clusters, spike_templates, amplitudes, pc_features, template_features, overlap_matrix, overlap_summary
+    return spike_times, spike_clusters, spike_templates, amplitudes, pc_features, \
+            template_features, spike_positions, overlap_matrix, overlap_summary
 
                 
 def find_within_unit_overlap(spike_train, overlap_window = 5):
@@ -293,7 +299,7 @@ def find_between_unit_overlap(spike_train1, spike_train2, amp1, amp2, overlap_wi
     return spikes_to_remove1, spikes_to_remove2
 
 
-def remove_spikes(spike_times, spike_clusters, spike_templates, amplitudes, pc_features, template_features, spikes_to_remove):
+def remove_spikes(spike_times, spike_clusters, spike_templates, amplitudes, pc_features, template_features, spike_positions, spikes_to_remove):
 
     """
     Removes spikes from Kilosort outputs
@@ -333,9 +339,13 @@ def remove_spikes(spike_times, spike_clusters, spike_templates, amplitudes, pc_f
         pc_features = np.delete(pc_features, spikes_to_remove, 0)
     if template_features.size > 0:
         template_features = np.delete(template_features, spikes_to_remove, 0)
+    if spike_positions.size > 0:
+        print('removing spikes from spike positions')
+        spike_positions = np.delete(spike_positions, spikes_to_remove, 0)
+        
     
 
-    return spike_times, spike_clusters, spike_templates, amplitudes, pc_features, template_features
+    return spike_times, spike_clusters, spike_templates, amplitudes, pc_features, template_features, spike_positions
 
 def align_spike_times(spike_times, spike_clusters, spikeglx_bin, output_dir, cWaves_path):
     

@@ -36,22 +36,15 @@ def calculate_quality_metrics(args):
 
 
     try:
-        if include_pc_metrics:
-            spike_times, spike_clusters, spike_templates, amplitudes, templates, channel_map, \
-            channel_pos, clusterIDs, cluster_quality, cluster_amplitude, pc_features, pc_feature_ind, template_features = \
-                    load_kilosort_data(args['directories']['kilosort_output_directory'], \
-                        args['ephys_params']['sample_rate'], \
-                        use_master_clock = False,
-                        include_pcs = True)
-        else:
-            spike_times, spike_clusters, spike_templates, amplitudes, templates, channel_map, \
-            channel_pos, clusterIDs, cluster_quality, cluster_amplitude = \
-            load_kilosort_data(args['directories']['kilosort_output_directory'], \
-                        args['ephys_params']['sample_rate'], \
-                        use_master_clock = False,
-                        include_pcs = False)
-            pc_features = []
-            pc_feature_ind = []
+        
+        spike_times, spike_clusters, spike_templates, amplitudes, templates, channel_map, \
+        channel_pos, clusterIDs, cluster_quality, cluster_amplitude, pc_features, \
+        pc_feature_ind, template_features, channel_positions = \
+                load_kilosort_data(args['directories']['kilosort_output_directory'], \
+                    args['ephys_params']['sample_rate'], \
+                    use_master_clock = False,
+                    include_pcs = True)
+
                     
         metrics = calculate_metrics(spike_times, spike_clusters, spike_templates, amplitudes, channel_map, channel_pos, templates, pc_features, pc_feature_ind, args['quality_metrics_params'])
         if args['quality_metrics_params']['include_ibl']:

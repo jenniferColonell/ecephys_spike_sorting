@@ -225,6 +225,7 @@ for i, spec in enumerate(recording_specs):
                                    ks_Th = ks_Th,
                                    ks_CSBseed = 1,
                                    ks_LTseed = 1,
+                                   ks_nblocks = ks_nblocks,
                                    ks_templateRadius_um = ks_templateRadius_um,
                                    extracted_data_directory = npx_directory,
                                    c_Waves_snr_um = c_Waves_snr_um,                               

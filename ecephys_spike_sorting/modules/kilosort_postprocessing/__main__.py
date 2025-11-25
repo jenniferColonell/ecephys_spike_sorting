@@ -23,7 +23,8 @@ def run_postprocessing(args):
     
        
     spike_times, spike_clusters, spike_templates, amplitudes, templates, channel_map, \
-    channel_pos, clusterIDs, cluster_quality, cluster_amplitude, pc_features, pc_feature_ind, template_features = \
+    channel_pos, clusterIDs, cluster_quality, cluster_amplitude, pc_features, pc_feature_ind, \
+    template_features, spike_positions = \
                 load_kilosort_data(args['directories']['kilosort_output_directory'], \
                     args['ephys_params']['sample_rate'], \
                     convert_to_seconds = False, \
@@ -40,7 +41,7 @@ def run_postprocessing(args):
         
     if args['ks_postprocessing_params']['remove_duplicates']:
         spike_times, spike_clusters, spike_templates, amplitudes, pc_features, \
-        template_features, overlap_matrix, overlap_summary = \
+        template_features, spike_positions, overlap_matrix, overlap_summary = \
             remove_double_counted_spikes(spike_times, 
                                          spike_clusters,
                                          spike_templates, 
@@ -51,6 +52,7 @@ def run_postprocessing(args):
                                          pc_features, 
                                          pc_feature_ind, 
                                          template_features,
+                                         spike_positions,
                                          cluster_amplitude,
                                          args['ephys_params']['sample_rate'],
                                          args['ks_postprocessing_params'])
@@ -69,6 +71,9 @@ def run_postprocessing(args):
         np.save(os.path.join(output_dir, 'pc_features.npy'), pc_features)
     if template_features.size > 0: 
         np.save(os.path.join(output_dir, 'template_features.npy'), template_features)
+    if spike_positions.size > 0:
+        np.save(os.path.join(output_dir, 'spike_positions.npy'), spike_positions )
+        
     
     if args['ks_postprocessing_params']['remove_duplicates']:
         np.save(os.path.join(output_dir, 'overlap_matrix.npy'), overlap_matrix)

@@ -66,8 +66,12 @@ logName = 'pipeline_test_log.csv'
 # run_specs = name, gate, trigger and probes to process
 npx_directory = r'Z:\pipeline_test_data\SC048_in'
 
-# OneBox notes:
-# The defaults have been set up for ni as only source of aux channels
+# Auxiliary channel notes:
+# For ni only:
+#    --set the OneBox string to empty '' in the run spec
+#    --set ni_present=True, obx_present=False
+#    --make sure to set up correct extractors in ni_obx_extract_string
+#    ==if using, set event_ex_param_str
 # For OneBox ADC channels:
 #    --specify which OneBox to run in the run_specs
 #    --set obx_present=True   (and ni_present=False, if you have no ni)
@@ -89,7 +93,7 @@ npx_directory = r'Z:\pipeline_test_data\SC048_in'
 # need to be skipped, add -t_miss_ok to catGT_cmd_string.
 
 run_specs = [									
-						['SC048_122920_ex', '0', '0,0', '0', '', ['cortex','thalamus','thalamus'] ]
+						['SC048_122920_ex', '0', '0,0', '0:2', '', ['cortex','thalamus','thalamus'] ]
 ]
 
 # ------------------
@@ -448,12 +452,12 @@ for spec in run_specs:
         if create_aux_timepoints:
             
             if ni_present:            
-                SpikeGLX_utils.CreateAuxTimeEvents(spec[0], str(first_gate), catGT_dest, stream='ni')
+                SpikeGLX_utils.CreateAuxTimeEvents(spec[0], str(first_gate), catGT_dest, 'catgt', stream='ni')
             if obx_present:
                 # parse the obx string for this run spec; works the same as the prb string
                 obx_list = SpikeGLX_utils.ParseProbeStr(spec[4])
                 for obx_ind in obx_list:
-                    SpikeGLX_utils.CreateAuxTimeEvents(spec[0], str(first_gate), catGT_dest, stream=f'obx{obx_ind}')  
+                    SpikeGLX_utils.CreateAuxTimeEvents(spec[0], str(first_gate), catGT_dest, 'catgt', stream=f'obx{obx_ind}')  
                       
         # create json files for calling TPrime
         session_id = spec[0] + '_TPrime'
@@ -470,7 +474,7 @@ for spec in run_specs:
                                            event_ex_param_str = event_ex_param_str,
                                            sync_period = 1.0,
                                            toStream_sync_params = toStream_sync_params,
-                                           ks_output_tag = ks_output_tag
+                                           ks_output_tag = ks_output_tag,                                           
                                            ) 
         
         command = sys.executable + " -W ignore -m ecephys_spike_sorting.modules." + 'tPrime_helper' + " --input_json " + input_json \
