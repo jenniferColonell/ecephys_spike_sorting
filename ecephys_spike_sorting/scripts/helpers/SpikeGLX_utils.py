@@ -453,22 +453,38 @@ def CreateSepShanksString(metaFullPath):
        sh = []
        sepShanks_str = ''
        out_ind_list = []
-   
-    xCoord, yCoord, shankInd, connected = SGLXMeta.MetaToCoords(metaPath,-1)    
-    sh, sh_counts = np.unique(shankInd, return_counts=True)
-     
-    sepShanks_str = '-sepShanks=' + repr(prb_ind)
+       
+    nShank, shankInd = shank_info(metaPath)
+    sh = np.unique(shankInd)
+    sepShanks_str = f'-sepShanks={prb_ind}'
     out_ind_list = []
     
-    for i in range((np.max(sh)+1).astype(int)):  
-        out_ind_str = str(int(1000 + 10*prb_ind + i))
-        sepShanks_str = sepShanks_str + ','  + out_ind_str
+    for i in range(nShank):  
         if np.isin(i,sh):
+            out_ind_str = str(int(1000 + 10*prb_ind + i))
             out_ind_list.append(out_ind_str)
+        else:
+            out_ind_str = '-1'
+        sepShanks_str = sepShanks_str + ','  + out_ind_str
+
         
            
     return len(sh), sepShanks_str, out_ind_list
 
+
+def shank_info(metaFullPath):
+    # re-reads the metadata, which is inefficient.
+    # However, keeps the calling script simple
+        
+    metaPath = Path(metaFullPath)
+    meta = SGLXMeta.readMeta(metaPath)
+    
+    if 'snsGeomMap' in meta:
+        [nShank, shankWidth, shankPitch, shankInd, xCoord, yCoord, connected] = SGLXMeta.geomMapToGeom(meta)
+    else:   
+        [nShank, shankWidth, shankPitch, shankInd, xCoord, yCoord, connected] = SGLXMeta.shankMapToGeom(meta)
+    
+    return nShank, shankInd
 
 def rec_length(metaFullPath):
     # re-reads the metadata, which is inefficient.

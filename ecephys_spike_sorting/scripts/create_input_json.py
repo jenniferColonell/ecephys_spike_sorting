@@ -95,7 +95,7 @@ def createInputJson(output_file,
         kilosort_repository = r''  # default path for when we aren't using any of these
             
     npy_matlab_repository = r'C:\Users\colonellj\Documents\npy-matlab-master'
-    catGTPath = r'C:\Users\colonellj\Documents\CatGT-win-47'
+    catGTPath = r'C:\Users\colonellj\Documents\CatGT-win'
     tPrime_path=r'C:\Users\colonellj\Documents\TPrime-win'
     cWaves_path=r'C:\Users\colonellj\Documents\C_Waves-win'
          

@@ -657,9 +657,9 @@ def MetaToCoords(metaFullPath, outType, badChan= np.zeros((0), dtype = 'int'), d
     # Get coordinates for saved channels from snsGeomMap, if present,
     # otherwise from snsShankMap
     if 'snsGeomMap' in meta:
-        [nShank, shankWidth, shankPitch, shankInd, xCoord, yCoord, connected] = geomMapToGeom(meta);
+        [nShank, shankWidth, shankPitch, shankInd, xCoord, yCoord, connected] = geomMapToGeom(meta)
     else:   
-        [nShank, shankWidth, shankPitch, shankInd, xCoord, yCoord, connected] = shankMapToGeom(meta);
+        [nShank, shankWidth, shankPitch, shankInd, xCoord, yCoord, connected] = shankMapToGeom(meta)
     
     if showPlot:
         plotSaved(xCoord, yCoord, shankInd, meta)
