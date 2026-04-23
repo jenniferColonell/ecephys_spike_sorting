@@ -148,7 +148,7 @@ def plotDriftmap(ks_directory, sample_rate = 30000, time_range = [0, np.inf], ex
                     use_master_clock = False,
                     include_pcs = True)
 
-    spike_depths = get_spike_depths(spike_clusters, pc_features, pc_feature_ind, channel_pos)
+    spike_depths = get_spike_depths(spike_clusters, np.squeeze(spike_templates), np.square(pc_features[:,0,:]), pc_feature_ind, channel_pos)
     spike_amplitudes = get_spike_amplitudes(spike_templates, templates, amplitudes)
 
     if exclude_noise:
